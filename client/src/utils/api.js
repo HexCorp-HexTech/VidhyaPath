@@ -164,6 +164,66 @@ export async function getReEngagement(studentId) {
   try { const res = await fetch(`${API_BASE}/reengagement/${studentId}`); return await res.json(); } catch { return null; }
 }
 
+export async function getLessonContent(standard, subject, chapter) {
+  const cacheKey = `content_lesson_${standard}_${subject}_${chapter}`;
+  try {
+    const res = await fetch(`${API_BASE}/content/lesson`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({ standard, subject, chapter }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || "Failed to load lesson");
+    }
+    const data = await res.json();
+    cacheData(cacheKey, data);
+    return data;
+  } catch {
+    return getCachedData(cacheKey);
+  }
+}
+
+export async function getNotesContent(standard, subject, chapter) {
+  const cacheKey = `content_notes_${standard}_${subject}_${chapter}`;
+  try {
+    const res = await fetch(`${API_BASE}/content/notes`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({ standard, subject, chapter }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || "Failed to load notes");
+    }
+    const data = await res.json();
+    cacheData(cacheKey, data);
+    return data;
+  } catch {
+    return getCachedData(cacheKey);
+  }
+}
+
+export async function getQuizContent(standard, subject, chapter) {
+  const cacheKey = `content_quiz_${standard}_${subject}_${chapter}`;
+  try {
+    const res = await fetch(`${API_BASE}/content/quiz`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({ standard, subject, chapter }),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || "Failed to load quiz");
+    }
+    const data = await res.json();
+    cacheData(cacheKey, data);
+    return data;
+  } catch {
+    return getCachedData(cacheKey);
+  }
+}
+
 export function getSavedStudentId() { return localStorage.getItem('pw_student_id'); }
 export function getLanguage() { return localStorage.getItem('pw_language') || 'en'; }
 export function setLanguage(lang) { localStorage.setItem('pw_language', lang); }
