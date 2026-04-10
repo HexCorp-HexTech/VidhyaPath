@@ -15,6 +15,7 @@ export default function Quiz() {
   const [answers, setAnswers] = useState({});
   const [isPreparing, setIsPreparing] = useState(false);
   const [error, setError] = useState("");
+  const [aiMeta, setAiMeta] = useState({ source: null, ai_powered: false, reason: null });
 
   useEffect(() => {
     let isMounted = true;
@@ -48,6 +49,11 @@ export default function Quiz() {
 
         if (data?.quiz?.length) {
           setQuiz(data.quiz);
+          setAiMeta({
+            source: data.source || null,
+            ai_powered: data.ai_powered || false,
+            reason: data.reason || null,
+          });
         } else {
           setError("Quiz could not be loaded right now.");
         }
@@ -126,6 +132,24 @@ export default function Quiz() {
         <p className="pipeline-subtitle">
           Class {standard} · {subject}
         </p>
+
+        {/* AI source status banner */}
+        {aiMeta.source === "ai" && (
+          <div className="ai-status-banner ai-success">
+            <span className="ai-status-icon">🤖</span>
+            <span>AI-powered quiz generated successfully</span>
+          </div>
+        )}
+        {aiMeta.source === "fallback" && aiMeta.reason && (
+          <div className="ai-status-banner ai-fallback">
+            <span className="ai-status-icon">⚠️</span>
+            <span>
+              AI generation failed — using fallback quiz.
+              <span className="ai-reason"> Reason: {aiMeta.reason}</span>
+            </span>
+          </div>
+        )}
+
         <div className="quiz-question-stack">
           {quiz.map((question, index) => (
             <div className="quiz-question-card" key={question.question}>
@@ -149,6 +173,14 @@ export default function Quiz() {
             </div>
           ))}
         </div>
+
+        {/* AI Generated marker at bottom for AI quizzes */}
+        {aiMeta.source === "ai" && (
+          <p className="ai-generated-marker" style={{ textAlign: "center", marginTop: "1rem" }}>
+            ✨ AI Generated
+          </p>
+        )}
+
         <div className="pipeline-actions">
           <button className="btn btn-ghost btn-lg" onClick={() => navigate("/notes")}>
             Back to Notes

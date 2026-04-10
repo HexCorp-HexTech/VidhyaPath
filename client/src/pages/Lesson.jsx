@@ -12,6 +12,7 @@ export default function Lesson() {
   const setLesson = useAppStore((state) => state.setLesson);
   const [isPreparing, setIsPreparing] = useState(false);
   const [error, setError] = useState("");
+  const [aiMeta, setAiMeta] = useState({ source: null, ai_powered: false, reason: null });
 
   useEffect(() => {
     let isMounted = true;
@@ -40,6 +41,11 @@ export default function Lesson() {
 
         if (data?.lesson) {
           setLesson(data.lesson);
+          setAiMeta({
+            source: data.source || null,
+            ai_powered: data.ai_powered || false,
+            reason: data.reason || null,
+          });
         } else {
           setError("Lesson content could not be loaded right now.");
         }
@@ -96,6 +102,24 @@ export default function Lesson() {
         <p className="pipeline-subtitle">
           Class {standard} · {subject}
         </p>
+
+        {/* AI source status banner */}
+        {aiMeta.source === "ai" && (
+          <div className="ai-status-banner ai-success">
+            <span className="ai-status-icon">🤖</span>
+            <span>AI-powered lesson generated successfully</span>
+          </div>
+        )}
+        {aiMeta.source === "fallback" && aiMeta.reason && (
+          <div className="ai-status-banner ai-fallback">
+            <span className="ai-status-icon">⚠️</span>
+            <span>
+              AI generation failed — using fallback lesson.
+              <span className="ai-reason"> Reason: {aiMeta.reason}</span>
+            </span>
+          </div>
+        )}
+
         <p className="pipeline-copy" style={{ whiteSpace: "pre-line" }}>
           {lesson}
         </p>

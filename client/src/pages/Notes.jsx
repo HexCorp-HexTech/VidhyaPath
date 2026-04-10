@@ -13,6 +13,7 @@ export default function Notes() {
   const setNotes = useAppStore((state) => state.setNotes);
   const [isPreparing, setIsPreparing] = useState(false);
   const [error, setError] = useState("");
+  const [aiMeta, setAiMeta] = useState({ source: null, ai_powered: false, reason: null });
 
   useEffect(() => {
     let isMounted = true;
@@ -46,6 +47,11 @@ export default function Notes() {
 
         if (data?.notes) {
           setNotes(data.notes);
+          setAiMeta({
+            source: data.source || null,
+            ai_powered: data.ai_powered || false,
+            reason: data.reason || null,
+          });
         } else {
           setError("Notes could not be loaded right now.");
         }
@@ -102,10 +108,34 @@ export default function Notes() {
         <p className="pipeline-subtitle">
           Class {standard} · {subject}
         </p>
+
+        {/* AI source status banner */}
+        {aiMeta.source === "ai" && (
+          <div className="ai-status-banner ai-success">
+            <span className="ai-status-icon">🤖</span>
+            <span>AI-powered notes generated successfully</span>
+          </div>
+        )}
+        {aiMeta.source === "fallback" && aiMeta.reason && (
+          <div className="ai-status-banner ai-fallback">
+            <span className="ai-status-icon">⚠️</span>
+            <span>
+              AI generation failed — using fallback notes.
+              <span className="ai-reason"> Reason: {aiMeta.reason}</span>
+            </span>
+          </div>
+        )}
+
         <ul className="pipeline-notes-list">
-          {(notes || []).map((item) => (
-            <li key={item}>{item}</li>
-          ))}
+          {(notes || []).map((item, idx) => {
+            // Check if this is the AI Generated marker
+            const isAIMarker = item === "✨ AI Generated";
+            return (
+              <li key={idx} className={isAIMarker ? "ai-generated-marker" : ""}>
+                {item}
+              </li>
+            );
+          })}
         </ul>
         <div className="pipeline-actions">
           <button className="btn btn-ghost btn-lg" onClick={() => navigate("/lesson")}>

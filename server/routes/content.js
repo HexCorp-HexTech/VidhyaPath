@@ -27,6 +27,7 @@ router.post("/lesson", async (req, res) => {
       selection.subject,
       selection.chapter
     );
+    // Pass through all metadata (lesson, source, ai_powered, reason)
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message || "Failed to load lesson" });
@@ -45,6 +46,7 @@ router.post("/notes", async (req, res) => {
       selection.subject,
       selection.chapter
     );
+    // Pass through all metadata (notes, source, ai_powered, reason)
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message || "Failed to load notes" });
@@ -63,6 +65,7 @@ router.post("/quiz", async (req, res) => {
       selection.subject,
       selection.chapter
     );
+    // Pass through all metadata (quiz, source, ai_powered, reason)
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message || "Failed to load quiz" });

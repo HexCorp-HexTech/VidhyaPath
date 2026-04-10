@@ -3,6 +3,7 @@ import {
   generateLessonWithAI,
   generateNotesWithAI,
   generateQuizWithAI,
+  isContentAIAvailable,
 } from "./aiContentService.js";
 
 function normalizeStandard(standard) {
@@ -42,43 +43,112 @@ function getLocalChapter(standardInput, subjectInput, chapterInput) {
   };
 }
 
+// ── Lesson ───────────────────────────────────────────────────────────
+
 export async function getLesson(standard, subject, chapter) {
-  const local = getLocalChapter(standard, subject, chapter);
-  if (local?.data?.lesson) {
-    return { lesson: local.data.lesson, source: "db" };
+  // Try AI first
+  if (isContentAIAvailable()) {
+    const aiResult = await generateLessonWithAI(standard, subject, chapter);
+    if (aiResult.success && aiResult.data) {
+      return {
+        lesson: aiResult.data,
+        source: "ai",
+        ai_powered: true,
+        reason: null,
+      };
+    }
+    // AI failed — fall through to local with reason
+    const local = getLocalChapter(standard, subject, chapter);
+    if (local?.data?.lesson) {
+      return {
+        lesson: local.data.lesson,
+        source: "fallback",
+        ai_powered: false,
+        reason: aiResult.reason,
+      };
+    }
+    // No local data either
+    throw new Error(aiResult.reason || "Lesson content unavailable");
   }
 
-  const aiLesson = await generateLessonWithAI(standard, subject, chapter);
-  if (aiLesson) {
-    return { lesson: aiLesson, source: "ai" };
+  // No AI key — use local directly
+  const local = getLocalChapter(standard, subject, chapter);
+  if (local?.data?.lesson) {
+    return { lesson: local.data.lesson, source: "db", ai_powered: false, reason: null };
   }
 
   throw new Error("Lesson content unavailable");
 }
 
+// ── Notes ────────────────────────────────────────────────────────────
+
 export async function getNotes(standard, subject, chapter) {
-  const local = getLocalChapter(standard, subject, chapter);
-  if (local?.data?.notes) {
-    return { notes: local.data.notes, source: "db" };
+  // Try AI first
+  if (isContentAIAvailable()) {
+    const aiResult = await generateNotesWithAI(standard, subject, chapter);
+    if (aiResult.success && aiResult.data) {
+      return {
+        notes: aiResult.data,
+        source: "ai",
+        ai_powered: true,
+        reason: null,
+      };
+    }
+    // AI failed — fall through to local with reason
+    const local = getLocalChapter(standard, subject, chapter);
+    if (local?.data?.notes) {
+      return {
+        notes: local.data.notes,
+        source: "fallback",
+        ai_powered: false,
+        reason: aiResult.reason,
+      };
+    }
+    // No local data either
+    throw new Error(aiResult.reason || "Notes content unavailable");
   }
 
-  const aiNotes = await generateNotesWithAI(standard, subject, chapter);
-  if (aiNotes) {
-    return { notes: aiNotes, source: "ai" };
+  // No AI key — use local directly
+  const local = getLocalChapter(standard, subject, chapter);
+  if (local?.data?.notes) {
+    return { notes: local.data.notes, source: "db", ai_powered: false, reason: null };
   }
 
   throw new Error("Notes content unavailable");
 }
 
+// ── Quiz ─────────────────────────────────────────────────────────────
+
 export async function getQuiz(standard, subject, chapter) {
-  const local = getLocalChapter(standard, subject, chapter);
-  if (local?.data?.quiz) {
-    return { quiz: local.data.quiz, source: "db" };
+  // Try AI first
+  if (isContentAIAvailable()) {
+    const aiResult = await generateQuizWithAI(standard, subject, chapter);
+    if (aiResult.success && aiResult.data) {
+      return {
+        quiz: aiResult.data,
+        source: "ai",
+        ai_powered: true,
+        reason: null,
+      };
+    }
+    // AI failed — fall through to local with reason
+    const local = getLocalChapter(standard, subject, chapter);
+    if (local?.data?.quiz) {
+      return {
+        quiz: local.data.quiz,
+        source: "fallback",
+        ai_powered: false,
+        reason: aiResult.reason,
+      };
+    }
+    // No local data either
+    throw new Error(aiResult.reason || "Quiz content unavailable");
   }
 
-  const aiQuiz = await generateQuizWithAI(standard, subject, chapter);
-  if (aiQuiz) {
-    return { quiz: aiQuiz, source: "ai" };
+  // No AI key — use local directly
+  const local = getLocalChapter(standard, subject, chapter);
+  if (local?.data?.quiz) {
+    return { quiz: local.data.quiz, source: "db", ai_powered: false, reason: null };
   }
 
   throw new Error("Quiz content unavailable");
@@ -87,4 +157,3 @@ export async function getQuiz(standard, subject, chapter) {
 export function hasPrototypeChapter(standard, subject, chapter) {
   return Boolean(getLocalChapter(standard, subject, chapter));
 }
-
