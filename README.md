@@ -199,6 +199,9 @@ Every chapter includes key topics and known weak-concept annotations used by the
 
 ---
 
-## License
+Team HexCorp
 
-MIT
+Arnav Kumar
+Saqlain Abidi
+Sumit Ghavri
+Vedant Dusane
