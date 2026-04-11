@@ -8,8 +8,8 @@ const __dirname = path.dirname(__filename);
 // Vercel Serverless Hack: Vercel's filesystem is read-only except for /tmp.
 const isVercel = process.env.VERCEL || process.env.VERCEL_ENV;
 const DB_PATH = isVercel 
-  ? '/tmp/pathwise.db' 
-  : path.join(__dirname, 'pathwise.db');
+  ? '/tmp/vidyapath.db' 
+  : path.join(__dirname, 'vidyapath.db');
 
 // Create database with better-sqlite3 (10x faster, production-ready)
 const db = new Database(DB_PATH);
