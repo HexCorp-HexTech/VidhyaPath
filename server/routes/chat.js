@@ -25,7 +25,7 @@ router.post('/message', async (req, res) => {
         const messages = [
           {
             role: 'system',
-            content: `You are PathWise AI Tutor — a warm, patient, encouraging tutor for Indian ${student.board || 'CBSE'} Class ${student.grade} students. 
+            content: `You are VidhyaPath AI Tutor — a warm, patient, encouraging tutor for Indian ${student.board || 'CBSE'} Class ${student.grade} students. 
 
 RULES:
 - Explain concepts at Grade 6 reading level maximum
@@ -50,7 +50,7 @@ ${syllabusCtx}`
             'Authorization': `Bearer ${API_KEY}`,
             'Content-Type': 'application/json',
             'HTTP-Referer': 'http://localhost:3001',
-            'X-Title': 'PathWise Chatbot'
+            'X-Title': 'VidhyaPath Chatbot'
           },
           body: JSON.stringify({ model: MODEL, messages, max_tokens: 1024, temperature: 0.7 })
         });
@@ -86,8 +86,8 @@ function generateSmartReply(message, student, syllabusCtx) {
 
   if (msg.includes('hello') || msg.includes('hi') || msg.includes('namaste') || msg.includes('नमस्ते')) {
     return isHindi
-      ? `नमस्ते ${name}! 😊 मैं PathWise AI Tutor हूँ। आप मुझसे ${board} Class ${grade} के किसी भी विषय के बारे में पूछ सकते हैं। क्या पढ़ना है आज?`
-      : `Hello ${name}! 😊 I'm your PathWise AI Tutor. You can ask me about any ${board} Class ${grade} topic. What would you like to study today?`;
+      ? `नमस्ते ${name}! 😊 मैं VidhyaPath AI Tutor हूँ। आप मुझसे ${board} Class ${grade} के किसी भी विषय के बारे में पूछ सकते हैं। क्या पढ़ना है आज?`
+      : `Hello ${name}! 😊 I'm your VidhyaPath AI Tutor. You can ask me about any ${board} Class ${grade} topic. What would you like to study today?`;
   }
 
   if (msg.includes('weak') || msg.includes('कमज़ोर') || msg.includes('difficult') || msg.includes('hard')) {

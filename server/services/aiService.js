@@ -181,7 +181,7 @@ ${syllabusCtx}
     {
       temperature: 0.6,
       maxTokens: 1200,
-      title: "PathWise Chat",
+      title: "VidhyaPath Chat",
     }
   );
 

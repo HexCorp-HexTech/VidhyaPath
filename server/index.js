@@ -42,7 +42,7 @@ if (!isVercel) {
   app.listen(PORT, () => {
     console.log(`
 ╔══════════════════════════════════════════╗
-║   🎓 PathWise Server Running            ║
+║   🎓 VidhyaPath Server Running          ║
 ║   http://localhost:${PORT}                 ║
 ╚══════════════════════════════════════════╝
     `);
