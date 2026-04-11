@@ -1,0 +1,45 @@
+import { create } from "zustand";
+
+export const useAppStore = create((set) => ({
+  standard: null,
+  subject: null,
+  syllabus: [],
+  syllabusSubjects: [],
+  currentChapter: null,
+  lesson: null,
+  notes: null,
+  quiz: [],
+  score: null,
+  quizResult: null,
+  setStandard: (standard) => set({ standard }),
+  setSubject: (subject) => set({ subject }),
+  setSyllabus: (syllabus) => set({ syllabus }),
+  setSyllabusSubjects: (syllabusSubjects) => set({ syllabusSubjects }),
+  setChapter: (chapter) => set({ currentChapter: chapter }),
+  setLesson: (lesson) => set({ lesson }),
+  setNotes: (notes) => set({ notes }),
+  setQuiz: (quiz) => set({ quiz }),
+  setScore: (score) => set({ score }),
+  setQuizResult: (quizResult) => set({ quizResult }),
+  resetFlow: () =>
+    set({
+      lesson: null,
+      notes: null,
+      quiz: [],
+      score: null,
+      quizResult: null,
+    }),
+  resetSelection: () =>
+    set({
+      standard: null,
+      subject: null,
+      syllabus: [],
+      syllabusSubjects: [],
+      currentChapter: null,
+      lesson: null,
+      notes: null,
+      quiz: [],
+      score: null,
+      quizResult: null,
+    }),
+}));

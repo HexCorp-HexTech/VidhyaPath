@@ -1,0 +1,51 @@
+﻿Γ£à Database initialized (better-sqlite3, WAL mode, 16MB cache, indexed)
+node : file:///C:/Users
+/Arnav/OneDrive/Desktop
+/hackathonn/server/loca
+lAI.js:2
+At line:1 char:1
++ node index.js 2>&1 | 
+Out-File -FilePath C:\U
+sers\Arnav\OneDrive\Des
+kt ...
++ ~~~~~~~~~~~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (file:///C:/Us   
+ er...er/localAI.js    
+:2:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+import { getChapters, 
+getImportantTopics } 
+from './syllabus.js';
+                      
+^^^^^^^^^^^^^^^^^^
+SyntaxError: The 
+requested module 
+'./syllabus.js' does 
+not provide an export 
+named 
+'getImportantTopics'
+    at 
+#asyncInstantiate (node
+:internal/modules/esm/m
+odule_job:302:21)
+    at async 
+ModuleJob.run (node:int
+ernal/modules/esm/modul
+e_job:405:5)
+    at async onImport.t
+racePromise.__proto__ (
+node:internal/modules/e
+sm/loader:660:26)
+    at async start (fil
+e:///C:/Users/Arnav/One
+Drive/Desktop/hackathon
+n/server/index.js:19:38
+)
+
+Node.js v24.13.0

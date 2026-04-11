@@ -1,0 +1,25 @@
+# Dependency directories
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Production builds
+client/dist/
+
+# Env variants
+.env
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+server/pathwise.db
+server/database.sqlite
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Optional IDE profiles
+.vscode/
+.idea/
