@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import "./App.css";
 import Login from "./pages/Login";
 import Onboarding from "./pages/Onboarding";
@@ -26,7 +26,9 @@ function ShellHeader({
   lang,
   onToggleLang,
   onLogout,
+  onDashboard,
   showLogout = true,
+  showDashboard = false,
 }) {
   return (
     <header className="topbar">
@@ -38,6 +40,11 @@ function ShellHeader({
         <button className="topbar-lang-btn" onClick={onToggleLang}>
           {lang === "en" ? "हिंदी" : "EN"}
         </button>
+        {showDashboard ? (
+          <button className="btn btn-ghost btn-sm" onClick={onDashboard}>
+            🏠 Dashboard
+          </button>
+        ) : null}
         {showLogout ? (
           <button className="btn btn-ghost btn-sm" onClick={onLogout}>
             Sign Out
@@ -49,6 +56,10 @@ function ShellHeader({
 }
 
 function StudentShell({ lang, onToggleLang, onLogout, studentData }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const onDashboard = location.pathname === "/dashboard";
+
   return (
     <div className="main-area">
       <ShellHeader
@@ -57,6 +68,8 @@ function StudentShell({ lang, onToggleLang, onLogout, studentData }) {
         lang={lang}
         onToggleLang={onToggleLang}
         onLogout={onLogout}
+        showDashboard={!onDashboard}
+        onDashboard={() => navigate("/dashboard")}
       />
       <main className="page-content">
         <Routes>
