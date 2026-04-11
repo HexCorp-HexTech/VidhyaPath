@@ -92,6 +92,28 @@ db.exec(`
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (student_id) REFERENCES students(id)
   );
+
+  CREATE TABLE IF NOT EXISTS teacher_assigned_paths (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    teacher_id INTEGER NOT NULL,
+    student_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    topics_json TEXT NOT NULL,
+    status TEXT DEFAULT 'active',
+    assigned_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (teacher_id) REFERENCES teachers(id),
+    FOREIGN KEY (student_id) REFERENCES students(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS assigned_path_content (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    path_id INTEGER NOT NULL,
+    topic_index INTEGER NOT NULL,
+    topic_name TEXT NOT NULL,
+    content TEXT NOT NULL,
+    generated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (path_id) REFERENCES teacher_assigned_paths(id)
+  );
 `);
 
 // Migration: add columns safely
@@ -129,6 +151,9 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_topic_progress_status ON topic_progress(student_id, status);
   CREATE INDEX IF NOT EXISTS idx_sessions_student ON sessions(student_id);
   CREATE INDEX IF NOT EXISTS idx_sessions_timestamp ON sessions(student_id, timestamp);
+  CREATE INDEX IF NOT EXISTS idx_assigned_paths_student ON teacher_assigned_paths(student_id);
+  CREATE INDEX IF NOT EXISTS idx_assigned_paths_teacher ON teacher_assigned_paths(teacher_id);
+  CREATE INDEX IF NOT EXISTS idx_assigned_content_path ON assigned_path_content(path_id, topic_index);
 `);
 
 // Seed demo teacher if none

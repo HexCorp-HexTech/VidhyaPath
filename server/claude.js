@@ -180,6 +180,41 @@ Respond in ${language === 'hi' ? 'Hindi' : 'English'}.`;
   return await callAI(systemPrompt, userPrompt, 8192);
 }
 
+// NEW: Generate AI-powered teacher analytics report
+export async function generateTeacherReport(classData) {
+  const systemPrompt = `You are an educational data analyst for Indian schools. Analyze student performance data and produce actionable insights for teachers. Respond with valid JSON only — no markdown, no code fences.`;
+  
+  const userPrompt = `Analyze this class performance data and generate an insightful report for the teacher.
+
+=== CLASS DATA ===
+Total Students: ${classData.totalStudents}
+Average Progress: ${classData.avgProgress}%
+
+Per-student quiz results:
+${classData.studentSummaries.map(s => `- ${s.name} (Class ${s.grade}, ${s.board}): ${s.quizCount} quizzes taken, avg score ${s.avgScore}/5, weak topics: [${s.weakTopics.join(', ')}], status: ${s.status}`).join('\n')}
+
+Most failed topics across class:
+${classData.topWeakTopics.map(t => `- "${t.topic}": ${t.count} students struggling`).join('\n')}
+=== END ===
+
+Return JSON:
+{
+  "overall_assessment": "2-3 sentence summary of the class's overall performance",
+  "weak_topics": [
+    {"topic": "Topic name", "student_count": 5, "severity": "high/medium/low", "suggestion": "What the teacher should do about this topic"}
+  ],
+  "students_needing_help": [
+    {"name": "Student name", "reason": "Why they need help", "priority": "urgent/moderate/low", "recommendation": "Specific action for the teacher"}
+  ],
+  "class_strengths": ["Area where class is doing well 1", "Area 2"],
+  "action_items": ["Concrete step 1 for the teacher", "Concrete step 2", "Concrete step 3"]
+}
+
+Be specific and practical. Focus on actionable advice. Flag students who have multiple weak areas or consistently low scores as needing human help.`;
+
+  return await callAI(systemPrompt, userPrompt, 4096);
+}
+
 export function isAIAvailable() {
   return hasValidKey;
 }

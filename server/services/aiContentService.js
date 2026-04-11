@@ -117,6 +117,9 @@ function validateLesson(text) {
   if (!cleaned) return null;
   const lines = cleaned.split(/\n+/).filter(Boolean);
   if (lines.length < 5) return null;
+  // Enforce 200-word minimum for meaningful lesson content
+  const wordCount = cleaned.split(/\s+/).filter(Boolean).length;
+  if (wordCount < 180) return null; // allow slight slack (180 vs 200) for edge cases
   return cleaned;
 }
 
@@ -203,20 +206,24 @@ Output format (plain text, one point per line, start directly):
 
 export async function generateLessonWithAI(standard, subject, chapter) {
   const result = await callOpenRouter(
-    "You are an expert school teacher. Follow the user's structure exactly. Output only plain text.",
-    `Explain the chapter "${chapter}" for a class ${standard} ${subject} student.
+    "You are an expert school teacher for Indian students. Write detailed, easy-to-understand lessons. Output only plain text — no markdown, no headings, no bullet points.",
+    `Write a detailed lesson on the chapter "${chapter}" for a class ${standard} ${subject} student.
 
 Requirements:
-- 15 to 30 lines
-- Simple language a student can understand
-- Step-by-step explanation
-- Include examples from daily life
-- Include any formulas using Unicode symbols (², ³, √, π, θ, ÷, ×)
-- No bullet points, write in paragraph form
+- The lesson MUST be at least 200 words long (ideally 250-300 words). This is CRITICAL.
+- Write in paragraph form — no bullet points, no numbered lists, no headings
+- Use simple language that a student can easily understand
+- Explain concepts step-by-step with clear reasoning
+- Include at least 2 real-life examples from daily life (e.g., shopping, cooking, cricket, festivals)
+- Include all relevant formulas using Unicode symbols (², ³, √, π, θ, ÷, ×, ≤, ≥)
+- Provide a brief summary at the end
+- Be encouraging and friendly in tone
+
+IMPORTANT: Your response must contain AT LEAST 200 words. Short responses will be rejected.
 
 Output ONLY plain text.`,
     0.5,
-    3000
+    4000
   );
 
   if (!result.success) {
@@ -227,10 +234,11 @@ Output ONLY plain text.`,
   const lesson = validateLesson(result.data);
   if (!lesson) {
     const lineCount = (result.data || "").split(/\n+/).filter(Boolean).length;
+    const wordCount = (result.data || "").split(/\s+/).filter(Boolean).length;
     return {
       success: false,
       data: null,
-      reason: `AI returned lesson too short (${lineCount} lines, need ≥5)`,
+      reason: `AI returned lesson too short (${wordCount} words / ${lineCount} lines, need ≥200 words and ≥5 lines)`,
     };
   }
 
@@ -294,6 +302,43 @@ Output JSON format ONLY (no markdown, no code fences):
       reason: `AI returned non-JSON response: ${parseError.message}`,
     };
   }
+}
+
+// ── Topic Explanation for Teacher-Assigned Paths ─────────────────────
+
+export async function generateTopicExplanation(topic) {
+  const result = await callOpenRouter(
+    "You are a friendly, expert teacher. Explain topics clearly for school students. Output plain text only, no markdown formatting.",
+    `Explain the basics of "${topic}" in simple language for a school student.
+
+Requirements:
+- 10 to 20 lines
+- What it is and why it matters
+- Key concepts explained step by step
+- Include a simple real-life example
+- Use simple vocabulary a student can understand
+- No bullet points, write in paragraph form
+
+Output ONLY plain text.`,
+    0.5,
+    2500
+  );
+
+  if (!result.success) {
+    console.error(`[AI Topic] Failed for "${topic}": ${result.reason}`);
+    return { success: false, data: null, reason: result.reason };
+  }
+
+  const text = result.data?.trim();
+  if (!text || text.split(/\n+/).filter(Boolean).length < 3) {
+    return {
+      success: false,
+      data: null,
+      reason: `AI returned too short an explanation (need ≥3 lines)`,
+    };
+  }
+
+  return { success: true, data: text + "\n\n✨ AI Generated", reason: null };
 }
 
 // ── Availability check ───────────────────────────────────────────────

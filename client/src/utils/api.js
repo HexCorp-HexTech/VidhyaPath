@@ -224,6 +224,59 @@ export async function getQuizContent(standard, subject, chapter) {
   }
 }
 
+// ===== TEACHER-ASSIGNED PATHS =====
+export async function assignPathToStudent(teacherId, studentId, title, topics) {
+  const res = await fetch(`${API_BASE}/assigned-paths/assign`, {
+    method: 'POST', headers: getHeaders(),
+    body: JSON.stringify({ teacher_id: teacherId, student_id: studentId, title, topics }),
+  });
+  if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Failed to assign path'); }
+  return await res.json();
+}
+
+export async function getAssignedPaths(studentId) {
+  const cacheKey = `assigned_paths_${studentId}`;
+  try {
+    const res = await fetch(`${API_BASE}/assigned-paths/student/${studentId}`);
+    if (!res.ok) throw new Error('Failed to fetch');
+    const data = await res.json();
+    cacheData(cacheKey, data);
+    return data;
+  } catch { return getCachedData(cacheKey) || []; }
+}
+
+export async function getAssignedTopicContent(pathId, topicIndex) {
+  const cacheKey = `assigned_content_${pathId}_${topicIndex}`;
+  try {
+    const res = await fetch(`${API_BASE}/assigned-paths/content/${pathId}/${topicIndex}`);
+    if (!res.ok) throw new Error('Failed to fetch');
+    const data = await res.json();
+    cacheData(cacheKey, data);
+    return data;
+  } catch { return getCachedData(cacheKey); }
+}
+
+// ===== TEACHER ANALYTICS =====
+export async function getTeacherQuizScores(classCode) {
+  const url = classCode
+    ? `${API_BASE}/teacher/quiz-scores?class_code=${encodeURIComponent(classCode)}`
+    : `${API_BASE}/teacher/quiz-scores`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch');
+    return await res.json();
+  } catch { return { scores: [], student_count: 0 }; }
+}
+
+export async function generateTeacherAIReport(classCode) {
+  const res = await fetch(`${API_BASE}/teacher/ai-report`, {
+    method: 'POST', headers: getHeaders(),
+    body: JSON.stringify({ class_code: classCode }),
+  });
+  if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Failed to generate report'); }
+  return await res.json();
+}
+
 export function getSavedStudentId() { return localStorage.getItem('pw_student_id'); }
 export function getLanguage() { return localStorage.getItem('pw_language') || 'en'; }
 export function setLanguage(lang) { localStorage.setItem('pw_language', lang); }

@@ -17,6 +17,8 @@ import Lesson from "./pages/Lesson";
 import Notes from "./pages/Notes";
 import Quiz from "./pages/Quiz";
 import Result from "./pages/Result";
+import AssignedPaths from "./pages/AssignedPaths";
+import Chatbot from "./pages/Chatbot";
 import en from "./i18n/en.json";
 import hi from "./i18n/hi.json";
 import {
@@ -38,7 +40,9 @@ function ShellHeader({
   onToggleLang,
   onLogout,
   showLogout = true,
+  showAssigned = false,
 }) {
+  const nav = useNavigate();
   return (
     <header className="topbar">
       <div className="topbar-title">
@@ -46,6 +50,11 @@ function ShellHeader({
         {subtitle ? <span className="topbar-sub">{subtitle}</span> : null}
       </div>
       <div className="topbar-actions">
+        {showAssigned ? (
+          <button className="btn btn-ghost btn-sm" onClick={() => nav("/assigned-paths")} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            📋 Assigned
+          </button>
+        ) : null}
         <button className="topbar-lang-btn" onClick={onToggleLang}>
           {lang === "en" ? "हिंदी" : "EN"}
         </button>
@@ -61,6 +70,8 @@ function ShellHeader({
 
 function StudentShell({ lang, onToggleLang, onLogout }) {
   const location = useLocation();
+  const [showChat, setShowChat] = useState(false);
+  const studentId = getSavedStudentId();
 
   const stepTitles = {
     "/syllabus": {
@@ -91,6 +102,10 @@ function StudentShell({ lang, onToggleLang, onLogout }) {
       title: "Result",
       subtitle: "See your score and restart the flow cleanly.",
     },
+    "/assigned-paths": {
+      title: "Assigned Paths",
+      subtitle: "Learning paths assigned by your teacher.",
+    },
   };
 
   const currentMeta =
@@ -104,6 +119,7 @@ function StudentShell({ lang, onToggleLang, onLogout }) {
         lang={lang}
         onToggleLang={onToggleLang}
         onLogout={onLogout}
+        showAssigned={true}
       />
       <main className="page-content">
         <Routes>
@@ -114,9 +130,30 @@ function StudentShell({ lang, onToggleLang, onLogout }) {
           <Route path="/notes" element={<Notes />} />
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/result" element={<Result />} />
+          <Route path="/assigned-paths" element={<AssignedPaths />} />
           <Route path="*" element={<Navigate to="/syllabus" replace />} />
         </Routes>
       </main>
+
+      {/* Floating Chat Button */}
+      <button
+        className="chat-fab"
+        onClick={() => setShowChat(true)}
+        title={lang === 'hi' ? 'AI Tutor से बात करें' : 'Chat with AI Tutor'}
+        aria-label="Open AI Tutor Chat"
+      >
+        <span className="chat-fab-icon">🤖</span>
+        <span className="chat-fab-pulse" />
+      </button>
+
+      {/* Chatbot Overlay */}
+      {showChat && (
+        <Chatbot
+          lang={lang}
+          studentId={studentId}
+          onClose={() => setShowChat(false)}
+        />
+      )}
     </div>
   );
 }

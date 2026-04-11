@@ -26,6 +26,7 @@ import reengagementRoutes from './routes/reengagement.js';
 import lessonRoutes from './routes/lesson.js';
 import chatRoutes from './routes/chat.js';
 import contentRoutes from './routes/content.js';
+import assignedPathsRoutes from './routes/assignedPaths.js';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);
@@ -36,6 +37,7 @@ app.use('/api/reengagement', reengagementRoutes);
 app.use('/api/lesson', lessonRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/content', contentRoutes);
+app.use('/api/assigned-paths', assignedPathsRoutes);
 
 // Vercel doesn't use app.listen, it intercepts exports
 const isVercel = process.env.VERCEL || process.env.VERCEL_ENV;
