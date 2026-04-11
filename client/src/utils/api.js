@@ -203,6 +203,20 @@ export async function removeStudentModule(payload) {
   return data;
 }
 
+export async function getStudentQuizHistory(studentId) {
+  return requestWithCache(
+    `/teacher/student/${encodeURIComponent(studentId)}/quiz-history`,
+    `quiz_history_${studentId}`
+  );
+}
+
+export async function getStudentMonthlyReport(studentId) {
+  return requestWithCache(
+    `/teacher/student/${encodeURIComponent(studentId)}/monthly-report`,
+    `monthly_report_${studentId}`
+  );
+}
+
 export async function getLessonContent({ studentId, standard, subject, chapter }) {
   return requestWithCache("/content/lesson", `lesson_${studentId}_${subject}_${chapter}`, {
     method: "POST",

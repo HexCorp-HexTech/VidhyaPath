@@ -131,6 +131,12 @@ router.post('/submit', async (req, res) => {
         [student_id, topic_name, status, score, JSON.stringify(feedback), JSON.stringify(weakConcepts)]);
     }
 
+    // Log every attempt for history
+    try {
+      runSQL("INSERT INTO quiz_attempts (student_id, topic_name, score, total, status, weak_concepts, attempted_at) VALUES (?, ?, ?, ?, ?, ?, datetime('now'))",
+        [student_id, topic_name, score, totalQuestions, status, JSON.stringify(weakConcepts)]);
+    } catch(e) { console.warn('quiz_attempts insert failed:', e.message); }
+
     // Update streak and last active
     try {
       runSQL("UPDATE students SET last_active = datetime('now'), streak_count = streak_count + 1 WHERE id = ?", [student_id]);

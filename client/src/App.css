@@ -748,6 +748,8 @@ a { text-decoration: none; color: inherit; }
 /* ─── QUIZ RESULTS ───────────────────────────────────────────────────────── */
 .results-layout { display: grid; grid-template-columns: 1fr 360px; gap: 24px; }
 @media (max-width: 1000px) { .results-layout { grid-template-columns: 1fr; } }
+.teacher-layout { display: grid; grid-template-columns: 300px 1fr; gap: 24px; }
+@media (max-width: 1000px) { .teacher-layout { grid-template-columns: 1fr; } }
 
 .result-hero-card {
   background: linear-gradient(135deg, var(--navy), var(--navyM));

@@ -100,4 +100,153 @@ router.get('/students', (req, res) => {
   }
 });
 
+// Get all quiz attempts for a specific student (full history)
+router.get('/student/:id/quiz-history', (req, res) => {
+  try {
+    const studentId = parseInt(req.params.id);
+    const student = getOne('SELECT id, name, grade, board FROM students WHERE id = ?', [studentId]);
+    if (!student) return res.status(404).json({ error: 'Student not found' });
+
+    // Try quiz_attempts table first (full history), fall back to topic_progress
+    let attempts = [];
+    try {
+      attempts = getAll(
+        `SELECT id, topic_name, score, total, status, weak_concepts, attempted_at
+         FROM quiz_attempts WHERE student_id = ? ORDER BY attempted_at DESC`,
+        [studentId]
+      ).map(a => ({
+        id: a.id,
+        topic: a.topic_name,
+        score: a.score,
+        total: a.total,
+        percentage: Math.round((a.score / (a.total || 1)) * 100),
+        status: a.status,
+        weak_concepts: (() => { try { return JSON.parse(a.weak_concepts || '[]'); } catch { return []; } })(),
+        attempted_at: a.attempted_at,
+      }));
+    } catch(e) {
+      // quiz_attempts table may not exist in older DBs
+    }
+
+    // If no attempts table data, fall back to topic_progress records
+    if (attempts.length === 0) {
+      const progress = getAll(
+        `SELECT topic_name, quiz_score, attempts, status, weak_concepts, last_attempt
+         FROM topic_progress WHERE student_id = ? AND quiz_score IS NOT NULL ORDER BY last_attempt DESC`,
+        [studentId]
+      );
+      attempts = progress.map(p => ({
+        id: null,
+        topic: p.topic_name,
+        score: p.quiz_score,
+        total: 5,
+        percentage: Math.round((p.quiz_score / 5) * 100),
+        status: p.status,
+        weak_concepts: (() => { try { return JSON.parse(p.weak_concepts || '[]'); } catch { return []; } })(),
+        attempted_at: p.last_attempt,
+        attempt_count: p.attempts,
+      }));
+    }
+
+    res.json({ student, attempts });
+  } catch (err) {
+    console.error('Quiz history error:', err);
+    res.status(500).json({ error: 'Failed to get quiz history' });
+  }
+});
+
+// Monthly report for a student: grouped by month, summary stats
+router.get('/student/:id/monthly-report', (req, res) => {
+  try {
+    const studentId = parseInt(req.params.id);
+    const student = getOne('SELECT id, name, grade, board, goals, level FROM students WHERE id = ?', [studentId]);
+    if (!student) return res.status(404).json({ error: 'Student not found' });
+
+    // Fetch all topic progress
+    const allProgress = getAll(
+      `SELECT topic_name, quiz_score, attempts, status, weak_concepts, last_attempt
+       FROM topic_progress WHERE student_id = ?`,
+      [studentId]
+    );
+
+    // Try quiz_attempts for monthly breakdown
+    let monthlyData = {};
+    try {
+      const attempts = getAll(
+        `SELECT topic_name, score, total, status, attempted_at
+         FROM quiz_attempts WHERE student_id = ? ORDER BY attempted_at ASC`,
+        [studentId]
+      );
+
+      attempts.forEach(a => {
+        const d = new Date(a.attempted_at);
+        const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        const monthLabel = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = { month: monthLabel, key: monthKey, attempts: 0, total_score: 0, total_possible: 0, topics: new Set(), strong: 0, weak: 0 };
+        }
+        monthlyData[monthKey].attempts += 1;
+        monthlyData[monthKey].total_score += a.score;
+        monthlyData[monthKey].total_possible += (a.total || 5);
+        monthlyData[monthKey].topics.add(a.topic_name);
+        if (a.status === 'strong') monthlyData[monthKey].strong += 1;
+        if (a.status === 'weak') monthlyData[monthKey].weak += 1;
+      });
+    } catch(e) {
+      // Fall back to topic_progress last_attempt dates
+      allProgress.forEach(p => {
+        if (!p.last_attempt) return;
+        const d = new Date(p.last_attempt);
+        const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        const monthLabel = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = { month: monthLabel, key: monthKey, attempts: 0, total_score: 0, total_possible: 0, topics: new Set(), strong: 0, weak: 0 };
+        }
+        monthlyData[monthKey].attempts += (p.attempts || 1);
+        monthlyData[monthKey].total_score += (p.quiz_score || 0);
+        monthlyData[monthKey].total_possible += 5;
+        monthlyData[monthKey].topics.add(p.topic_name);
+        if (p.status === 'strong') monthlyData[monthKey].strong += 1;
+        if (p.status === 'weak') monthlyData[monthKey].weak += 1;
+      });
+    }
+
+    const months = Object.values(monthlyData)
+      .sort((a, b) => a.key.localeCompare(b.key))
+      .map(m => ({
+        month: m.month,
+        key: m.key,
+        attempts: m.attempts,
+        avg_score_pct: m.total_possible > 0 ? Math.round((m.total_score / m.total_possible) * 100) : 0,
+        topics_covered: m.topics.size,
+        strong_topics: m.strong,
+        weak_topics: m.weak,
+      }));
+
+    // Overall summary
+    const totalTopics = allProgress.length;
+    const strongTopics = allProgress.filter(p => p.status === 'strong').length;
+    const weakTopics = allProgress.filter(p => p.status === 'weak').length;
+    const completedTopics = allProgress.filter(p => ['complete', 'strong'].includes(p.status)).length;
+    const avgScore = allProgress.filter(p => p.quiz_score !== null).length > 0
+      ? Math.round(allProgress.filter(p => p.quiz_score !== null).reduce((s, p) => s + (p.quiz_score || 0), 0) / allProgress.filter(p => p.quiz_score !== null).length * 20)
+      : 0;
+
+    const weakAreas = allProgress
+      .filter(p => p.status === 'weak')
+      .flatMap(p => { try { return JSON.parse(p.weak_concepts || '[]').slice(0, 2); } catch { return [p.topic_name]; } })
+      .slice(0, 10);
+
+    res.json({
+      student,
+      summary: { total_topics: totalTopics, completed_topics: completedTopics, strong_topics: strongTopics, weak_topics: weakTopics, avg_score_pct: avgScore },
+      months,
+      weak_areas: weakAreas,
+    });
+  } catch (err) {
+    console.error('Monthly report error:', err);
+    res.status(500).json({ error: 'Failed to generate monthly report' });
+  }
+});
+
 export default router;
