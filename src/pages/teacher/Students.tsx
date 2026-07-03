@@ -85,34 +85,6 @@ export const StudentsPage: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState<StudentData | null>(null);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
 
-  if (loading) {
-    return (
-      <div className="tstudents" style={{ padding: 'var(--sp-10)', textAlign: 'center' }}>
-        <p>Loading student directory...</p>
-      </div>
-    );
-  }
-
-  // Filter & Sort
-  const filteredStudents = classroomStudents.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRisk = riskFilter === 'all' || student.riskLevel === riskFilter;
-    return matchesSearch && matchesRisk;
-  }).sort((a, b) => {
-    if (sortBy === 'name') return a.name.localeCompare(b.name);
-    if (sortBy === 'mastery-desc') return b.mastery - a.mastery;
-    if (sortBy === 'mastery-asc') return a.mastery - b.mastery;
-    if (sortBy === 'streak') return b.streak - a.streak;
-    return 0;
-  });
-
-  const handleRecommendRevision = (studentName: string) => {
-    setActionNotice(`AI Revision plan on 'Linear Equations' generated and sent to ${studentName}!`);
-    setTimeout(() => {
-      setActionNotice(null);
-    }, 4000);
-  };
-
   const [subjectScores, setSubjectScores] = useState<{ name: string; score: number; color: string }[]>([]);
   const [strongConcepts, setStrongConcepts] = useState<string[]>([]);
   const [practiceConcepts, setPracticeConcepts] = useState<string[]>([]);
@@ -123,7 +95,6 @@ export const StudentsPage: React.FC = () => {
       try {
         const allSubjects = await db.subjects.toArray();
         const scores: { name: string; score: number; color: string }[] = [];
-        
         for (const subj of allSubjects) {
           const chapters = await db.chapters.where('subjectId').equals(subj.id).toArray();
           if (chapters.length === 0) continue;
@@ -210,6 +181,34 @@ export const StudentsPage: React.FC = () => {
     };
     fetchStudentMetrics();
   }, [selectedStudent]);
+
+  if (loading) {
+    return (
+      <div className="tstudents" style={{ padding: 'var(--sp-10)', textAlign: 'center' }}>
+        <p>Loading student directory...</p>
+      </div>
+    );
+  }
+
+  // Filter & Sort
+  const filteredStudents = classroomStudents.filter(student => {
+    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRisk = riskFilter === 'all' || student.riskLevel === riskFilter;
+    return matchesSearch && matchesRisk;
+  }).sort((a, b) => {
+    if (sortBy === 'name') return a.name.localeCompare(b.name);
+    if (sortBy === 'mastery-desc') return b.mastery - a.mastery;
+    if (sortBy === 'mastery-asc') return a.mastery - b.mastery;
+    if (sortBy === 'streak') return b.streak - a.streak;
+    return 0;
+  });
+
+  const handleRecommendRevision = (studentName: string) => {
+    setActionNotice(`AI Revision plan on 'Linear Equations' generated and sent to ${studentName}!`);
+    setTimeout(() => {
+      setActionNotice(null);
+    }, 4000);
+  };
 
   // Render detail sub-view
   if (selectedStudent) {
